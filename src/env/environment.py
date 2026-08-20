@@ -7,8 +7,8 @@ from .generator import Situation, SituationGenerator
 
 @dataclass(frozen=True)
 class StepResult:
-    situation: Situation
     action: int
+    correct_action: int
     reward: float
     done: bool
 

@@ -10,9 +10,7 @@ import numpy as np
 class Situation:
     id: int
     semantic_cluster: int
-    decision_id: int
     text: str
-    correct_action: int
 
 @dataclass(frozen=True)
 class EnvironmentConfig:
@@ -39,8 +37,6 @@ class SituationGenerator:
                 config.feature_dim,
             )
         )
-
-        # Each semantic cluster has a preferred decision.
         self.preferred_decisions = np.arange(
             config.num_semantic_clusters
         ) % config.num_decisions

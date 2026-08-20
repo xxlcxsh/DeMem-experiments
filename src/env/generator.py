@@ -11,7 +11,6 @@ class Situation:
     id: int
     semantic_cluster: int
     decision_id: int
-    features: np.ndarray
     text: str
     correct_action: int
 
@@ -64,20 +63,14 @@ class SituationGenerator:
             semantic_cluster
         )
 
-        features = self._generate_features(
-            semantic_cluster
-        )
-
         text = self._generate_text(
-            semantic_cluster,
-            decision_id,
+            semantic_cluster
         )
 
         situation = Situation(
             id=self._next_id,
             semantic_cluster=semantic_cluster,
             decision_id=decision_id,
-            features=features,
             text=text,
             correct_action=decision_id,
         )
@@ -105,30 +98,13 @@ class SituationGenerator:
         ]
 
         return int(self.rng.choice(alternatives))
-
-    def _generate_features(
-        self,
-        semantic_cluster: int,
-    ) -> np.ndarray:
-        center = self.semantic_centers[
-            semantic_cluster
-        ]
-
-        noise = self.rng.normal(
-            scale=self.config.noise_std,
-            size=self.config.feature_dim,
-        )
-
-        return center + noise
-
-    def _generate_text(
-        self,
-        semantic_cluster: int,
-        decision_id: int,
-    ) -> str:
-        return (
-            f"Situation belongs to semantic cluster "
-            f"{semantic_cluster}. "
-            f"Observed condition associated with "
-            f"decision {decision_id}."
+    def _generate_text(self, semantic_cluster: int) -> str:
+        ANCHORS = ['Corvus', 'Draco', 'Norma', 'Phoenix', 'Vega', 'Atlas', 'Orion', 'Altair']
+        FILLERS = ['query', 'тикет', 'запрос', 'отчёт', 'вопрос', 'конфиг']
+        TEMPLATES = ["На проект {anchor} пришёл {filler} от пользователя",
+                      "В {anchor} появился новый {filler} от пользователя",
+                      "{anchor} пришёл ещё один {filler}"]
+        anchor = ANCHORS[semantic_cluster]
+        return self.rng.choice(TEMPLATES).format(
+        anchor=anchor, filler=self.rng.choice(FILLERS)
         )

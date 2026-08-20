@@ -1,0 +1,134 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Sequence
+
+import numpy as np
+
+
+@dataclass(frozen=True)
+class Situation:
+    id: int
+    semantic_cluster: int
+    decision_id: int
+    features: np.ndarray
+    text: str
+    correct_action: int
+
+@dataclass(frozen=True)
+class EnvironmentConfig:
+    num_semantic_clusters: int = 8
+    num_decisions: int = 8
+    feature_dim: int = 32
+    mismatch: float = 0.0
+
+    noise_std: float = 0.1
+
+
+class SituationGenerator:
+    def __init__(
+        self,
+        config: EnvironmentConfig,
+        seed: int = 42,
+    ) -> None:
+        self.config = config
+        self.rng = np.random.default_rng(seed)
+
+        self.semantic_centers = self.rng.normal(
+            size=(
+                config.num_semantic_clusters,
+                config.feature_dim,
+            )
+        )
+
+        # Each semantic cluster has a preferred decision.
+        self.preferred_decisions = np.arange(
+            config.num_semantic_clusters
+        ) % config.num_decisions
+
+        self._next_id = 0
+
+    def generate(
+        self,
+        semantic_cluster: int | None = None,
+    ) -> Situation:
+        if semantic_cluster is None:
+            semantic_cluster = int(
+                self.rng.integers(
+                    0,
+                    self.config.num_semantic_clusters,
+                )
+            )
+
+        decision_id = self._sample_decision(
+            semantic_cluster
+        )
+
+        features = self._generate_features(
+            semantic_cluster
+        )
+
+        text = self._generate_text(
+            semantic_cluster,
+            decision_id,
+        )
+
+        situation = Situation(
+            id=self._next_id,
+            semantic_cluster=semantic_cluster,
+            decision_id=decision_id,
+            features=features,
+            text=text,
+            correct_action=decision_id,
+        )
+
+        self._next_id += 1
+
+        return situation
+
+    def _sample_decision(
+        self,
+        semantic_cluster: int,
+    ) -> int:
+        preferred = self.preferred_decisions[
+            semantic_cluster
+        ]
+        p_preferred = 1.0 - self.config.mismatch
+
+        if self.rng.random() < p_preferred:
+            return int(preferred)
+
+        alternatives = [
+            d
+            for d in range(self.config.num_decisions)
+            if d != preferred
+        ]
+
+        return int(self.rng.choice(alternatives))
+
+    def _generate_features(
+        self,
+        semantic_cluster: int,
+    ) -> np.ndarray:
+        center = self.semantic_centers[
+            semantic_cluster
+        ]
+
+        noise = self.rng.normal(
+            scale=self.config.noise_std,
+            size=self.config.feature_dim,
+        )
+
+        return center + noise
+
+    def _generate_text(
+        self,
+        semantic_cluster: int,
+        decision_id: int,
+    ) -> str:
+        return (
+            f"Situation belongs to semantic cluster "
+            f"{semantic_cluster}. "
+            f"Observed condition associated with "
+            f"decision {decision_id}."
+        )

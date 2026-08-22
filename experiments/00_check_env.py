@@ -1,5 +1,4 @@
 from collections import defaultdict
-
 from src.env.generator import (
     EnvironmentConfig,
     SituationGenerator,

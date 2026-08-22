@@ -33,16 +33,15 @@ class SyntheticEnvironment:
         action: int,
     ) -> StepResult:
         self.step_count += 1
-
+        correct_action = self.generator.get_correct_action(situation)
         reward = float(
-            action == situation.correct_action
+            action == correct_action
         )
-
         done = self.step_count >= self.max_steps
 
         return StepResult(
-            situation=situation,
             action=action,
+            correct_action=correct_action,
             reward=reward,
             done=done,
         )

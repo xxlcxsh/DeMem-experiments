@@ -1,8 +1,5 @@
 from __future__ import annotations
-
 from dataclasses import dataclass
-from typing import Sequence
-
 import numpy as np
 
 
@@ -30,7 +27,7 @@ class SituationGenerator:
     ) -> None:
         self.config = config
         self.rng = np.random.default_rng(seed)
-
+        self.correct_action_dict = {}
         self.semantic_centers = self.rng.normal(
             size=(
                 config.num_semantic_clusters,
@@ -58,6 +55,7 @@ class SituationGenerator:
         decision_id = self._sample_decision(
             semantic_cluster
         )
+        self.correct_action_dict[self._next_id] = decision_id
 
         text = self._generate_text(
             semantic_cluster
@@ -66,15 +64,16 @@ class SituationGenerator:
         situation = Situation(
             id=self._next_id,
             semantic_cluster=semantic_cluster,
-            decision_id=decision_id,
             text=text,
-            correct_action=decision_id,
         )
 
         self._next_id += 1
 
         return situation
-
+    
+    def get_correct_action(self,situation):
+        return self.correct_action_dict.pop([situation.id])
+    
     def _sample_decision(
         self,
         semantic_cluster: int,

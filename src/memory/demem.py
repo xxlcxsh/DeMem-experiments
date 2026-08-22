@@ -12,7 +12,7 @@ class DememEntry(MemoryEntry):
 
 
 class DecisionCentricMemory(Memory):
-    def __init__(self, capacity, threshold: float = 0.9):
+    def __init__(self, capacity, threshold: float = 0.5):
         super().__init__(capacity)
         self.vectorizer = TfidfVectorizer()
         self.threshold = threshold

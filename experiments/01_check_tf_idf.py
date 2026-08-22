@@ -1,4 +1,3 @@
-from collections import defaultdict
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
@@ -6,6 +5,7 @@ from src.env.generator import (
     EnvironmentConfig,
     SituationGenerator,
 )
+
 
 def run(mismatch: float, n: int = 10_000) -> None:
     config = EnvironmentConfig(
@@ -21,14 +21,16 @@ def run(mismatch: float, n: int = 10_000) -> None:
     decisions = []
     for _ in range(n):
         situation = generator.generate()
+        # decision_id больше не поле Situation -- читаем отдельно, как в 00_check_env.py
+        decision_id = generator.get_correct_action(situation)
         texts.append(situation.text)
         clusters.append(situation.semantic_cluster)
-        decisions.append(situation.decision_id)
+        decisions.append(decision_id)
     vectorizer = TfidfVectorizer()
     matrix = vectorizer.fit_transform(texts)
     print(f"\nMismatch = {mismatch}")
-    correct_clusters,correct_decisions = 0,0
-    sim_matrix = cosine_similarity(matrix,matrix)
+    correct_clusters, correct_decisions = 0, 0
+    sim_matrix = cosine_similarity(matrix, matrix)
     for index in range(n):
         nearest_index = np.argsort(sim_matrix[index])[::-1][1]
         if clusters[index] == clusters[nearest_index]:
@@ -39,6 +41,7 @@ def run(mismatch: float, n: int = 10_000) -> None:
     decisions_accuracy = correct_decisions / n
     print(f"cluster_accuracy: {cluster_accuracy}")
     print(f"decisions_accuracy: {decisions_accuracy}")
+
 
 if __name__ == "__main__":
     for mismatch in (

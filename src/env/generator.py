@@ -70,10 +70,10 @@ class SituationGenerator:
         self._next_id += 1
 
         return situation
-    
-    def get_correct_action(self,situation):
-        return self.correct_action_dict.pop([situation.id])
-    
+
+    def get_correct_action(self, situation):
+        return self.correct_action_dict.pop(situation.id)
+
     def _sample_decision(
         self,
         semantic_cluster: int,

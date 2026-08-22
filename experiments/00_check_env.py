@@ -4,6 +4,7 @@ from src.env.generator import (
     SituationGenerator,
 )
 
+
 def run(mismatch: float, n: int = 10_000) -> None:
     config = EnvironmentConfig(
         mismatch=mismatch,
@@ -18,10 +19,14 @@ def run(mismatch: float, n: int = 10_000) -> None:
 
     for _ in range(n):
         situation = generator.generate()
+        # decision_id больше не хранится в Situation (это была утечка правильного
+        # ответа в наблюдение агента) -- читаем его отдельно через generator,
+        # как это делает SyntheticEnvironment.step()
+        decision_id = generator.get_correct_action(situation)
 
         counts[
             situation.semantic_cluster
-        ][situation.decision_id] += 1
+        ][decision_id] += 1
 
     print(f"\nMismatch = {mismatch}")
 
